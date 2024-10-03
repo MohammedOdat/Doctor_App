@@ -80,27 +80,28 @@ const registerOrLogin = async (req, res) => {
         gender: newUser.gender,
       },
     });
-  } catch (err) {
+  } catch (error) {
     // Handle errors such as duplicate phone numbers or database issues
     return res.status(409).json({
       success: false,
       message: "The number already exists or there was an issue with registration",
-      err,
+      error,
     });
   }
 };
-
-const getAllSpecializations = (req, res) => {
-  const query = "SELECT specialization FROM specializations WHERE is_deleted = 0;";
+const getAllSpecializations = (req,res)=>{
+    const query = "SELECT specialization FROM specializations WHERE is_deleted = 0;";
   
   pool.query(query)
     .then((result) => {
       if (result.rows.length > 0) {
+        // Map the result to get only the names of specializations
         const specializations = result.rows.map(row => row.specialization);
+        
         res.status(200).json({
           success: true,
           message: "All Available Specializations",
-          data: specializations, // Return all rows
+          data: specializations, // Return only the names of specializations
         });
       } else {
         res.status(404).json({
@@ -108,16 +109,14 @@ const getAllSpecializations = (req, res) => {
           message: "There are no available specializations for now",
         });
       }
-    })
-    .catch((error) => {
-      res.status(500).json({
-        success: false,
-        message: "Server Error",
-        error,
+    }).catch((err) => {
+        res.status(500).json({
+          success: false,
+          message: "Server error",
+        });
       });
-    });
-};
+}
 
 
 
-module.exports = { registerOrLogin, getAllSpecializations };
+module.exports = { registerOrLogin, getAllSpecializations};

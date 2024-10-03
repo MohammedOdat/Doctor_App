@@ -5,5 +5,5 @@ const {authentication} = require("../middleware/authentication");
 const usersRouter = express.Router();
 
 usersRouter.post("/registerOrLogin", registerOrLogin);
-usersRouter.get("/specializations", getAllSpecializations)
+usersRouter.get("/specializations", getAllSpecializations);
 module.exports = usersRouter;
