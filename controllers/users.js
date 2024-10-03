@@ -1,9 +1,9 @@
+const { query } = require("express");
 const pool = require("../models/db");
 const jwt = require("jsonwebtoken");
 
 const registerOrLogin = async (req, res) => {
-    const phone_number = Number(req.body.phone_number)
-  const { role_id, OTP } = req.body;
+  const { phone_number, role_id, OTP } = req.body;
 
   // Check if OTP is correct
   if (OTP !== 666) {
@@ -37,14 +37,14 @@ const registerOrLogin = async (req, res) => {
         success: true,
         message: `Login successful`,
         userId: user.id,
-        private: user.private,
-        userInfo: {
+        data: {
           firstName: user.firstName,
           lastName: user.lastName,
           image: user.image,
           phone_number: user.phone_number,
           age: user.age,
           gender: user.gender,
+          
         },
       });
     }
@@ -71,7 +71,7 @@ const registerOrLogin = async (req, res) => {
       message: "Account created and logged in successfully",
       userId: newUser.id,
       private: newUser.private,
-      userInfo: {
+      data: {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         image: newUser.image,
@@ -90,4 +90,34 @@ const registerOrLogin = async (req, res) => {
   }
 };
 
-module.exports = { registerOrLogin };
+const getAllSpecializations = (req, res) => {
+  const query = "SELECT specialization FROM specializations WHERE is_deleted = 0;";
+  
+  pool.query(query)
+    .then((result) => {
+      if (result.rows.length > 0) {
+        const specializations = result.rows.map(row => row.specialization);
+        res.status(200).json({
+          success: true,
+          message: "All Available Specializations",
+          data: specializations, // Return all rows
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: "There are no available specializations for now",
+        });
+      }
+    })
+    .catch((error) => {
+      res.status(500).json({
+        success: false,
+        message: "Server Error",
+        error,
+      });
+    });
+};
+
+
+
+module.exports = { registerOrLogin, getAllSpecializations };
