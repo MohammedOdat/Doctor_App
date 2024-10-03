@@ -7,7 +7,9 @@ require("dotenv").config()
 
 app.use(cors());
 app.use(express.json());
+const usersRouter = require("./routes/users");
 
+app.use("/users",usersRouter)
 
 app.use("*", (req, res) => res.status(404).json("NO content at this path"));
 

@@ -76,7 +76,7 @@ const createTable = () => {
         end_time TIME,
         review_time TIME,
         day_off INT,
-        role_id INT,
+        role_id INT NOT NULL,
         rate INT,
         cost INT,
         created_at TIMESTAMP DEFAULT NOW(),
