@@ -90,18 +90,17 @@ const registerOrLogin = async (req, res) => {
   }
 };
 const getAllSpecializations = (req,res)=>{
-    const query = "SELECT specialization FROM specializations WHERE is_deleted = 0;";
+    const query = "SELECT id, specialization FROM specializations WHERE is_deleted = 0;";
   
   pool.query(query)
     .then((result) => {
       if (result.rows.length > 0) {
         // Map the result to get only the names of specializations
-        const specializations = result.rows.map(row => row.specialization);
         
         res.status(200).json({
           success: true,
           message: "All Available Specializations",
-          data: specializations, // Return only the names of specializations
+          data: result.rows // Return only the names of specializations
         });
       } else {
         res.status(404).json({
