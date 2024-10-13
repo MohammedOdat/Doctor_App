@@ -7,6 +7,16 @@ require("dotenv").config()
 
 app.use(cors());
 app.use(express.json());
+
+const cloudinary = require('cloudinary').v2;
+require('dotenv').config(); // Load environment variables
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 const roleRouter = require("./routes/Roles");
 const permissionRouter=require('./routes/permissions')
 const rolePermissionRouter=require('./routes/role_permission')
