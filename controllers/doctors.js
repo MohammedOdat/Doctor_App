@@ -1,27 +1,48 @@
 const { query } = require("express");
 const pool = require("../models/db");
 const cloudinary = require('cloudinary').v2;
-const createNewAdvertisement = (req,res)=>{
+const createNewAdvertisement = (req, res) => {
+    const { doctor_id, url, image, description } = req.body;
+    if (image) {
+        cloudinary.uploader.upload(image, (error, result) => {
+            if (error) {
+                return res.status(500).json({
+                    success: false,
+                    message: "Failed to upload image to Cloudinary",
+                    error
+                });
+            }
+            const imageUrl = result.secure_url;
+            const query = `
+                INSERT INTO advertisements (doctor_id, url, image, description)
+                VALUES ($1, $2, $3, $4)
+                RETURNING *;
+            `;
+            const values = [doctor_id, url, imageUrl, description];
 
-    const {doctor_id, url, image, description } = req.body;
-
-    const query = "INSERT INTO advertisements (doctor_id, url, image, description) VALUES ($1, $2, $3, $4) RETURNING *;"
-    const values=[doctor_id, url, image, description]
-
-    pool.query(query,values).then((result)=>{
-        res.status(201).json({
-            success: true,
-            message:"Advertisement Add Successfully",
-            data: result.rows
-        })
-    }).catch((error)=>{
-        res.status(500).json({
+            pool.query(query, values)
+                .then((result) => {
+                    res.status(201).json({
+                        success: true,
+                        message: "Advertisement added successfully",
+                        data: result.rows
+                    });
+                })
+                .catch((error) => {
+                    res.status(500).json({
+                        success: false,
+                        message: "Server error",
+                        error
+                    });
+                });
+        });
+    } else {
+        res.status(400).json({
             success: false,
-            message:"Server Error",
-            error
-        })
-    })
-} 
+            message: "Image is required"
+        });
+    }
+};
 
 const getDoctorsBySpecializationId = (req,res)=>{
     const {specialization_id,page,size}=req.params
@@ -55,72 +76,73 @@ const getDoctorsBySpecializationId = (req,res)=>{
 
 const addDoctorInformationById = (req, res) => {
     const { doctor_id } = req.params;
-    const { firstName, lastName, phone_number, whatsapp_number, email, city, location,image, specialization_id, years_experience, about } = req.body;
+    const { firstName, lastName, phone_number, whatsapp_number, email, city, location, image, specialization_id, years_experience, about } = req.body;
 
-    // Handle the image upload
-    console.log(image);
+    const updateDoctorInformation = (imageUrl = null) => {
+        const values = [
+            doctor_id,
+            firstName || null,
+            lastName || null,
+            phone_number || null,
+            whatsapp_number || null,
+            email || null,
+            city || null,
+            location || null,
+            imageUrl || null,
+            specialization_id || null,
+            years_experience || null,
+            about || null
+        ];
+
+        const query = `
+            UPDATE doctors
+            SET
+                firstName = COALESCE($2, firstName),
+                lastName = COALESCE($3, lastName),
+                phone_number = COALESCE($4, phone_number),
+                whatsapp_number = COALESCE($5, whatsapp_number),
+                email = COALESCE($6, email),
+                city = COALESCE($7, city),
+                location = COALESCE($8, location),
+                image = COALESCE($9, image), -- This will update the image if provided
+                specialization_id = COALESCE($10, specialization_id),
+                years_experience = COALESCE($11, years_experience),
+                about = COALESCE($12, about)
+            WHERE id = $1
+            RETURNING *;
+        `;
+
+        pool.query(query, values, (err, result) => {
+            if (err) {
+                console.error('Error executing query:', err.stack);
+                return res.status(500).json({ error: 'Database error' });
+            }
+
+            if (result.rows.length === 0) {
+                return res.status(404).json({ error: 'Doctor not found' });
+            }
+
+            const doctor = result.rows[0];
+            res.status(200).json({
+                success: true,
+                message: 'Doctor information updated successfully',
+                data: { ...doctor, image: doctor.image || null }
+            });
+        });
+    };
+
     if (image) {
         cloudinary.uploader.upload(image, (error, result) => {
             if (error) {
                 return res.status(500).json({ error: 'Failed to upload image to Cloudinary', error });
             }
-
-            // Extract the URL from the Cloudinary result
-            const imageUrl = result.secure_url; // This is the image URL to store
-
-            const values = [
-                doctor_id,
-                firstName || null,
-                lastName || null,
-                phone_number || null,
-                whatsapp_number || null,
-                email || null,
-                city || null,
-                location || null,
-                imageUrl || null, // Save the image URL to the database
-                specialization_id || null,
-                years_experience || null,
-                about || null
-            ];
-
-            const query = `
-                UPDATE doctors
-                SET
-                    firstName = COALESCE($2, firstName),
-                    lastName = COALESCE($3, lastName),
-                    phone_number = COALESCE($4, phone_number),
-                    whatsapp_number = COALESCE($5, whatsapp_number),
-                    email = COALESCE($6, email),
-                    city = COALESCE($7, city),
-                    location = COALESCE($8, location),
-                    image = COALESCE($9, image),
-                    specialization_id = COALESCE($10, specialization_id),
-                    years_experience = COALESCE($11, years_experience),
-                    about = COALESCE($12, about)
-                WHERE id = $1
-                RETURNING *;
-            `;
-
-            pool.query(query, values, (err, result) => {
-                if (err) {
-                    console.error('Error executing query:', err.stack);
-                    return res.status(500).json({ error: 'Database error' });
-                }
-
-                if (result.rows.length === 0) {
-                    return res.status(404).json({ error: 'Doctor not found' });
-                }
-
-                const doctor = result.rows[0];
-                res.status(200).json({
-                    ...doctor,
-                    image: doctor.image || null // Make sure to return image as URL if it exists
-                }); // Send doctor data back
-            });
+            const imageUrl = result.secure_url;
+            updateDoctorInformation(imageUrl);
         });
     } else {
-        res.status(400).json({ error: 'Image file is required' });
+        updateDoctorInformation();
     }
 };
+
 
 module.exports = { createNewAdvertisement, getDoctorsBySpecializationId, addDoctorInformationById};

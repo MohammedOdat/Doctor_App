@@ -5,7 +5,6 @@ const cloudinary = require('cloudinary').v2;
 const registerOrLogin = async (req, res) => {
   const { phone_number, role_id, OTP } = req.body;
 
-  // Check if OTP is correct
   if (OTP !== 666) {
     return res.status(401).json({
       success: false,
@@ -15,20 +14,16 @@ const registerOrLogin = async (req, res) => {
 
   try {
     let query;
-    // Check if the phone number already exists in the users table
     if(role_id===1){
     query = `SELECT * FROM users WHERE phone_number = $1`;
     }else if (role_id===2){
     query = `SELECT * FROM doctors WHERE phone_number = $1`;
     }
-    // const query = `SELECT * FROM users WHERE phone_number = $1`;
     const result = await pool.query(query, [phone_number]);
 
-    // If phone number exists, proceed with login logic
     if (result.rows.length > 0) {
       const user = result.rows[0];
 
-      // Generate a JWT token and return it in response
       const payload = {
         userId: user.id,
         role: user.role_id,
@@ -37,7 +32,6 @@ const registerOrLogin = async (req, res) => {
       const secret = process.env.SECRET;
       const token = jwt.sign(payload, secret, options);
 
-      // Send response with specified user data
       return res.status(200).json({
         token,
         success: true,
@@ -55,7 +49,6 @@ const registerOrLogin = async (req, res) => {
       });
     }
 
-    // If phone number does not exist, proceed with registration
     let insertQuery;
     if(role_id===1){
     insertQuery = `INSERT INTO users (phone_number, role_id) VALUES ($1, $2) RETURNING *`;
@@ -66,7 +59,6 @@ const registerOrLogin = async (req, res) => {
 
     const newUser = insertResult.rows[0];
 
-    // Generate a JWT token for the newly registered user
     const payload = {
       userId: newUser.id,
       role: newUser.role_id,
@@ -75,7 +67,6 @@ const registerOrLogin = async (req, res) => {
     const secret = process.env.SECRET;
     const token = jwt.sign(payload, secret, options);
 
-    // Send token back with the successful registration
     return res.status(200).json({
       token,
       success: true,
@@ -92,7 +83,6 @@ const registerOrLogin = async (req, res) => {
       },
     });
   } catch (error) {
-    // Handle errors such as duplicate phone numbers or database issues
     return res.status(409).json({
       success: false,
       message: "The number already exists or there was an issue with registration",
@@ -106,12 +96,11 @@ const getAllSpecializations = (req,res)=>{
   pool.query(query)
     .then((result) => {
       if (result.rows.length > 0) {
-        // Map the result to get only the names of specializations
         
         res.status(200).json({
           success: true,
           message: "All Available Specializations",
-          data: result.rows // Return only the names of specializations
+          data: result.rows 
         });
       } else {
         res.status(404).json({
@@ -129,8 +118,6 @@ const getAllSpecializations = (req,res)=>{
 const addUserInfoByUserId = (req, res) => {
   const { user_id } = req.params;
   const { firstName, lastName, gender, age, image } = req.body;
-
-  // Function to update user info
   const updateUser = (imageUrl = null) => {
       const values = [
           user_id,
@@ -153,7 +140,6 @@ const addUserInfoByUserId = (req, res) => {
           RETURNING *;
       `;
 
-      // Execute query
       pool.query(query, values)
           .then((result) => {
               return res.status(200).json({
@@ -171,9 +157,7 @@ const addUserInfoByUserId = (req, res) => {
           });
   };
 
-  // Check if image exists
   if (image) {
-      // If an image is provided, upload it to Cloudinary
       cloudinary.uploader.upload(image, (error, result) => {
           if (error) {
               return res.status(500).json({ error: 'Failed to upload image to Cloudinary', details: error });
