@@ -55,20 +55,18 @@ const getDoctorsBySpecializationId = (req,res)=>{
 
 const addDoctorInformationById = (req, res) => {
     const { doctor_id } = req.params;
-    const { firstName, lastName, phone_number, whatsapp_number, email, city, location, specialization_id, years_experience, about } = req.body;
+    const { firstName, lastName, phone_number, whatsapp_number, email, city, location,image, specialization_id, years_experience, about } = req.body;
 
     // Handle the image upload
-    if (req.file) {
-        const imagePath = req.file.path; // Get path to the uploaded file
-
-        // Upload the image to Cloudinary
-        cloudinary.uploader.upload(imagePath, (error, result) => {
+    console.log(image);
+    if (image) {
+        cloudinary.uploader.upload(image, (error, result) => {
             if (error) {
-                return res.status(500).json({ error: 'Failed to upload image to Cloudinary', error});
+                return res.status(500).json({ error: 'Failed to upload image to Cloudinary', error });
             }
 
             // Extract the URL from the Cloudinary result
-            const imageUrl = result.secure_url;
+            const imageUrl = result.secure_url; // This is the image URL to store
 
             const values = [
                 doctor_id,
@@ -79,7 +77,7 @@ const addDoctorInformationById = (req, res) => {
                 email || null,
                 city || null,
                 location || null,
-                imageUrl, // Save the image URL to the database
+                imageUrl || null, // Save the image URL to the database
                 specialization_id || null,
                 years_experience || null,
                 about || null
@@ -95,7 +93,7 @@ const addDoctorInformationById = (req, res) => {
                     email = COALESCE($6, email),
                     city = COALESCE($7, city),
                     location = COALESCE($8, location),
-                    image = COALESCE($9, image), 
+                    image = COALESCE($9, image),
                     specialization_id = COALESCE($10, specialization_id),
                     years_experience = COALESCE($11, years_experience),
                     about = COALESCE($12, about)
@@ -114,7 +112,10 @@ const addDoctorInformationById = (req, res) => {
                 }
 
                 const doctor = result.rows[0];
-                res.status(200).json(doctor); // Send doctor data back
+                res.status(200).json({
+                    ...doctor,
+                    image: doctor.image || null // Make sure to return image as URL if it exists
+                }); // Send doctor data back
             });
         });
     } else {
