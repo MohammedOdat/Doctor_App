@@ -1,7 +1,7 @@
 const { query } = require("express");
 const pool = require("../models/db");
 const jwt = require("jsonwebtoken");
-
+const cloudinary = require('cloudinary').v2;
 const registerOrLogin = async (req, res) => {
   const { phone_number, role_id, OTP } = req.body;
 
@@ -126,7 +126,66 @@ const getAllSpecializations = (req,res)=>{
         });
       });
 }
+const addUserInfoByUserId = (req, res) => {
+  const { user_id } = req.params;
+  const { firstName, lastName, gender, age, image } = req.body;
+
+  // Function to update user info
+  const updateUser = (imageUrl = null) => {
+      const values = [
+          user_id,
+          firstName || null,
+          lastName || null,
+          gender || null,
+          age || null,
+          imageUrl || null
+      ];
+
+      const query = `
+          UPDATE users
+          SET
+              firstName = COALESCE($2, firstName),
+              lastName = COALESCE($3, lastName),
+              gender = COALESCE($4, gender),
+              age = COALESCE($5, age),
+              image = COALESCE($6, image) -- Only update if image is provided
+          WHERE id = $1
+          RETURNING *;
+      `;
+
+      // Execute query
+      pool.query(query, values)
+          .then((result) => {
+              return res.status(200).json({
+                  success: true,
+                  message: "Information updated successfully",
+                  data: result.rows[0]
+              });
+          })
+          .catch((error) => {
+              return res.status(500).json({
+                  success: false,
+                  message: "Server Error",
+                  error
+              });
+          });
+  };
+
+  // Check if image exists
+  if (image) {
+      // If an image is provided, upload it to Cloudinary
+      cloudinary.uploader.upload(image, (error, result) => {
+          if (error) {
+              return res.status(500).json({ error: 'Failed to upload image to Cloudinary', details: error });
+          }
+          const imageUrl = result.secure_url;
+          updateUser(imageUrl);
+      });
+  } else {
+      updateUser();
+  }
+};
 
 
 
-module.exports = { registerOrLogin, getAllSpecializations};
+module.exports = { registerOrLogin, getAllSpecializations,addUserInfoByUserId};
