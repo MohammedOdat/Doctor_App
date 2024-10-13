@@ -31,7 +31,7 @@ const getDoctorsBySpecializationId = (req,res)=>{
     const offset = (page - 1) * size;
     const values=[limit,offset,specialization_id]
 
-    const query = "SELECT users.id, users.firstName, users.lastName, specializations.specialization, users.rate, users.cost, users.years_experience, users.city, users.image FROM users INNER JOIN specializations ON users.specialization_id = specializations.id WHERE users.specialization_id = $3 AND users.is_deleted = 0 LIMIT $1 OFFSET $2;"
+    const query = "SELECT doctors.id, doctors.firstName, doctors.lastName, specializations.specialization, doctors.rate, doctors.cost, doctors.years_experience, doctors.city, doctors.image FROM doctors INNER JOIN specializations ON doctors.specialization_id = specializations.id WHERE doctors.specialization_id = $3 AND doctors.is_deleted = 0 ORDER BY doctors.rate DESC LIMIT $1 OFFSET $2;"
 
     pool.query(query,values).then((result)=>{
         if(result.rows.length > 0){

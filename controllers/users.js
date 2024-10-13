@@ -14,8 +14,14 @@ const registerOrLogin = async (req, res) => {
   }
 
   try {
+    let query;
     // Check if the phone number already exists in the users table
-    const query = `SELECT * FROM users WHERE phone_number = $1`;
+    if(role_id===1){
+    query = `SELECT * FROM users WHERE phone_number = $1`;
+    }else if (role_id===2){
+    query = `SELECT * FROM doctors WHERE phone_number = $1`;
+    }
+    // const query = `SELECT * FROM users WHERE phone_number = $1`;
     const result = await pool.query(query, [phone_number]);
 
     // If phone number exists, proceed with login logic
@@ -50,7 +56,12 @@ const registerOrLogin = async (req, res) => {
     }
 
     // If phone number does not exist, proceed with registration
-    const insertQuery = `INSERT INTO users (phone_number, role_id) VALUES ($1, $2) RETURNING *`;
+    let insertQuery;
+    if(role_id===1){
+    insertQuery = `INSERT INTO users (phone_number, role_id) VALUES ($1, $2) RETURNING *`;
+    }else if(role_id===2){
+    insertQuery = `INSERT INTO doctors (phone_number, role_id) VALUES ($1, $2) RETURNING *`;
+    }
     const insertResult = await pool.query(insertQuery, [phone_number, role_id]);
 
     const newUser = insertResult.rows[0];

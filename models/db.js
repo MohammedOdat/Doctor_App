@@ -56,8 +56,7 @@ const createTable = () => {
         PRIMARY KEY (id)
     );
 
-
-    CREATE TABLE users (
+    CREATE TABLE doctors (
         id SERIAL NOT NULL,
         firstName VARCHAR(255),
         lastName VARCHAR(255),
@@ -66,9 +65,7 @@ const createTable = () => {
         email VARCHAR(255),
         city VARCHAR(255),
         location VARCHAR(255),
-        age INT,
-        gender VARCHAR(255),
-        image VARCHAR(255),
+        image BYTEA,
         specialization_id INT,
         years_experience INT,
         about VARCHAR(255),
@@ -85,11 +82,22 @@ const createTable = () => {
         FOREIGN KEY (role_id) REFERENCES roles (id),
         FOREIGN KEY (specialization_id) REFERENCES specializations (id)
     );
-    
-  
-  
-    
-   
+
+    CREATE TABLE users (
+        id SERIAL NOT NULL,
+        firstName VARCHAR(255),
+        lastName VARCHAR(255),
+        phone_number VARCHAR(15),
+        age INT,
+        gender VARCHAR(255),
+        image BYTEA,
+        role_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        is_deleted SMALLINT DEFAULT 0,
+        PRIMARY KEY (id),
+        FOREIGN KEY (role_id) REFERENCES roles (id)
+    );
+
     CREATE TABLE feedbacks (
         id SERIAL NOT NULL,
         user_id INT,
@@ -100,7 +108,7 @@ const createTable = () => {
         is_deleted SMALLINT DEFAULT 0,
         PRIMARY KEY (id),
         FOREIGN KEY (user_id) REFERENCES users (id),
-        FOREIGN KEY (doctor_id) REFERENCES users (id)
+        FOREIGN KEY (doctor_id) REFERENCES doctors (id)
     );
     
    
@@ -121,7 +129,7 @@ const createTable = () => {
         is_deleted SMALLINT DEFAULT 0,
         PRIMARY KEY (id),
         FOREIGN KEY (status_id) REFERENCES statuses (id),
-        FOREIGN KEY (doctor_id) REFERENCES users (id),
+        FOREIGN KEY (doctor_id) REFERENCES doctors (id),
         FOREIGN KEY (patient_id) REFERENCES users (id)
     );
     
@@ -135,7 +143,7 @@ const createTable = () => {
         created_at TIMESTAMP DEFAULT NOW(),
         is_deleted SMALLINT DEFAULT 0,
         PRIMARY KEY (id),
-        FOREIGN KEY (doctor_id) REFERENCES users (id)
+        FOREIGN KEY (doctor_id) REFERENCES doctors (id)
     );
     
    
@@ -151,7 +159,7 @@ const createTable = () => {
         created_at TIMESTAMP DEFAULT NOW(),
         is_deleted SMALLINT DEFAULT 0,
         PRIMARY KEY (id),
-        FOREIGN KEY (doctor_id) REFERENCES users (id),
+        FOREIGN KEY (doctor_id) REFERENCES doctors (id),
         FOREIGN KEY (patient_id) REFERENCES users (id)
     );
     
@@ -183,5 +191,5 @@ const insertData = () => {
     });
 };
 
-//   createTable();
-//   insertData();
+  // createTable();
+  // insertData();
