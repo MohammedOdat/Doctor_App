@@ -213,6 +213,31 @@ pool.query(query,values).then((result)=>{
   })
 })
 }
+const updateAppointmentById = (req,res)=>{
+  const id = req.params.booking_id
+  const {status_id} =req.body;
+  const values=[id, status_id]
+  const query = "UPDATE bookings SET status_id=$2 WHERE id=$1 RETURNING *;";
+  pool.query(query,values).then((result)=>{
+    if(result.rows.length===0){
+      return res.status(404).json({
+        success: false,
+        message: "Apointment not found",
+    });
+    }
+    res.status(200).json({
+      success:true,
+      message:"Appointent updated successfully",
+      data:result.rows[0]
+    })
+  }).catch((error)=>{
+    res.status(500).json({
+      success:false,
+      message:"Server Error",
+      error
+    })
+  })
 
+}
 
-module.exports = { registerOrLogin, getAllSpecializations,addUserInfoByUserId,getAllAdvertisements,addBokingByUserId};
+module.exports = { registerOrLogin, getAllSpecializations,addUserInfoByUserId,getAllAdvertisements,addBokingByUserId,updateAppointmentById};
