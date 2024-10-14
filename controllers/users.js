@@ -90,6 +90,28 @@ const registerOrLogin = async (req, res) => {
     });
   }
 };
+const getAllAdvertisements  = (req,res)=>{
+const query="SELECT * FROM advertisements WHERE is_deleted=0"
+pool.query(query).then((result)=>{
+  if(result.rows[0]){
+    res.status(200).json({
+      success:true,
+      message:"All advertisements",
+      data: result.rows[0]
+    })
+  }else(res.status(404).json({
+    success:false,
+    message: "There is no advertisements for now",
+
+  }))
+}).catch((error)=>{
+  res.status(500).json({
+    success:false,
+    message:"Server Error",
+    error
+  })
+})
+}
 const getAllSpecializations = (req,res)=>{
     const query = "SELECT id, specialization FROM specializations WHERE is_deleted = 0;";
   
@@ -172,4 +194,4 @@ const addUserInfoByUserId = (req, res) => {
 
 
 
-module.exports = { registerOrLogin, getAllSpecializations,addUserInfoByUserId};
+module.exports = { registerOrLogin, getAllSpecializations,addUserInfoByUserId,getAllAdvertisements};
