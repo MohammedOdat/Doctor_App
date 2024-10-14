@@ -114,12 +114,17 @@ const addDoctorInformationById = (req, res) => {
 
         pool.query(query, values, (err, result) => {
             if (err) {
-                console.error('Error executing query:', err.stack);
-                return res.status(500).json({ error: 'Database error' });
+                return res.status(500).json({ 
+                    success:false,
+                    message: 'Database error'
+                 });
             }
 
             if (result.rows.length === 0) {
-                return res.status(404).json({ error: 'Doctor not found' });
+                return res.status(404).json({ 
+                    success:false,
+                    message: 'Doctor not found'
+                 });
             }
 
             const doctor = result.rows[0];
@@ -134,7 +139,11 @@ const addDoctorInformationById = (req, res) => {
     if (image) {
         cloudinary.uploader.upload(image, (error, result) => {
             if (error) {
-                return res.status(500).json({ error: 'Failed to upload image to Cloudinary', error });
+                return res.status(500).json({
+                     success:false,
+                     message: 'Failed to upload image to Cloudinary',
+                      error 
+                    });
             }
             const imageUrl = result.secure_url;
             updateDoctorInformation(imageUrl);
@@ -144,5 +153,42 @@ const addDoctorInformationById = (req, res) => {
     }
 };
 
+const addWorkingTimeByDoctorId = (req, res) => {
+    const { doctor_id, start_time, end_time, review_time, day_off } = req.body;
+    const values = [doctor_id, start_time || null, end_time || null, review_time || null, day_off || null];
+    const query = `
+        UPDATE doctors 
+        SET start_time = COALESCE($2, start_time), 
+            end_time = COALESCE($3, end_time), 
+            review_time = COALESCE($4, review_time), 
+            day_off = COALESCE($5, day_off) 
+        WHERE id = $1 
+        RETURNING *;
+    `;
 
-module.exports = { createNewAdvertisement, getDoctorsBySpecializationId, addDoctorInformationById};
+    pool.query(query, values)
+        .then((result) => {
+            if (result.rows.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Doctor not found",
+                });
+            }
+
+            res.status(200).json({
+                success: true,
+                message: "All times added successfully",
+                data: result.rows[0],
+            });
+        })
+        .catch((error) => {
+            res.status(500).json({
+                success: false,
+                message: "Server Error",
+                error,
+            });
+        });
+};
+
+
+module.exports = { createNewAdvertisement, getDoctorsBySpecializationId, addDoctorInformationById,addWorkingTimeByDoctorId};
