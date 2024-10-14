@@ -182,7 +182,10 @@ const addUserInfoByUserId = (req, res) => {
   if (image) {
       cloudinary.uploader.upload(image, (error, result) => {
           if (error) {
-              return res.status(500).json({ error: 'Failed to upload image to Cloudinary', details: error });
+              return res.status(500).json({
+                success:false,
+                message: 'Failed to upload image to Cloudinary',  error 
+              });
           }
           const imageUrl = result.secure_url;
           updateUser(imageUrl);
@@ -191,7 +194,25 @@ const addUserInfoByUserId = (req, res) => {
       updateUser();
   }
 };
+const addBokingByUserId = (req,res)=>{
+const {patient_id, doctor_id, booking_time} = req.body
+const status_id=1
+const values = [patient_id,doctor_id, booking_time,status_id]
+const query="INSERT INTO bookings(patient_id,doctor_id, booking_time,status_id) VALUES ($1,$2,$3,$4) RETURNING *;"
+pool.query(query,values).then((result)=>{
+  res.status(201).json({
+    success:true,
+    message:"Apointment added successfully",
+    data: result.rows[0]
+  })
+}).catch((error)=>{
+  res.status(500).json({
+    success:false,
+    message:"Server Error",
+    error
+  })
+})
+}
 
 
-
-module.exports = { registerOrLogin, getAllSpecializations,addUserInfoByUserId,getAllAdvertisements};
+module.exports = { registerOrLogin, getAllSpecializations,addUserInfoByUserId,getAllAdvertisements,addBokingByUserId};

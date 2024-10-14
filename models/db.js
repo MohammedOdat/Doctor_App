@@ -123,7 +123,7 @@ const createTable = () => {
         id SERIAL NOT NULL,
         doctor_id INT,
         patient_id INT,
-        booking_time TIMESTAMP DEFAULT NOW(),
+        booking_time TIMESTAMP,
         status_id INT,
         created_at TIMESTAMP DEFAULT NOW(),
         is_deleted SMALLINT DEFAULT 0,
