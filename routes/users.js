@@ -8,7 +8,7 @@ usersRouter.post("/registerOrLogin", registerOrLogin);
 usersRouter.get("/advertisements",getAllAdvertisements)
 usersRouter.get("/specializations", getAllSpecializations);
 usersRouter.post("/addInfo/:user_id", authentication,addUserInfoByUserId);
-usersRouter.post("/booking",addBokingByUserId)
-usersRouter.put("/updateAppointment/:booking_id",updateAppointmentById)
-usersRouter.get("/appointments/:user_id",getAllAppointmentsByUserId)
+usersRouter.post("/booking",authentication,addBokingByUserId)
+usersRouter.put("/updateAppointment/:booking_id",authentication,updateAppointmentById)
+usersRouter.get("/appointments/:user_id",authentication,getAllAppointmentsByUserId)
 module.exports = usersRouter;
