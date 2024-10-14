@@ -239,5 +239,47 @@ const updateAppointmentById = (req,res)=>{
   })
 
 }
+const getAllAppointmentsByUserId = (req, res) => {
+  const { user_id } = req.params;  
+  const { status_id } = req.body; 
+  if (!status_id) {
+    return res.status(400).json({
+      success: false,
+      message: "Status ID is required",
+    });
+  }
 
-module.exports = { registerOrLogin, getAllSpecializations,addUserInfoByUserId,getAllAdvertisements,addBokingByUserId,updateAppointmentById};
+  const values = [user_id, status_id];
+  const query = `
+    SELECT bookings.booking_time, doctors.firstName, doctors.lastName, 
+           doctors.city, doctors.location, doctors.review_time, 
+           doctors.start_time, doctors.end_time, doctors.day_off
+    FROM bookings
+    INNER JOIN doctors ON bookings.doctor_id = doctors.id
+    WHERE bookings.patient_id = $1 AND bookings.status_id = $2 ORDER BY bookings.booking_time ASC;
+  `;
+
+  pool.query(query, values)
+    .then((result) => {
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "There are no appointments yet",
+        });
+      }
+      res.status(200).json({
+        success: true,
+        message: "All appointments",
+        data: result.rows, 
+      });
+    })
+    .catch((error) => {
+      res.status(500).json({
+        success: false,
+        message: "Server Error",
+        error,
+      });
+    });
+};
+
+module.exports = { registerOrLogin, getAllSpecializations,addUserInfoByUserId,getAllAdvertisements,addBokingByUserId,updateAppointmentById,getAllAppointmentsByUserId};
