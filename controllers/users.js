@@ -85,8 +85,7 @@ const registerOrLogin = async (req, res) => {
   } catch (error) {
     return res.status(409).json({
       success: false,
-      message: "The number already exists or there was an issue with registration",
-      error,
+      error: "The number already exists or there was an issue with registration"
     });
   }
 };

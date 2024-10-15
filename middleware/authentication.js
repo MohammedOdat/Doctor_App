@@ -4,7 +4,7 @@ const authentication = (req, res, next) => {
   try {
     
     if (!req.headers.authorization)
-      res.status(403).json({ message: "forbidden" });
+      res.status(403).json({success: false, message: "forbidden" });
 
     const token = req.headers.authorization.split(" ").pop();
 
@@ -21,7 +21,7 @@ const authentication = (req, res, next) => {
       }
     });
   } catch (error) {
-    res.status(403).json({ message: "forbidden" });
+    res.status(403).json({success: false, message: "forbidden"});
   }
 };
 module.exports = {authentication};

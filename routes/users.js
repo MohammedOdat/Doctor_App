@@ -4,11 +4,11 @@ const { registerOrLogin,getAllSpecializations,addUserInfoByUserId,getAllAdvertis
 const {authentication} = require("../middleware/authentication");
 const usersRouter = express.Router();
 
-usersRouter.post("/registerOrLogin", registerOrLogin);
+usersRouter.post("/verificatin-code", registerOrLogin);
 usersRouter.get("/advertisements",getAllAdvertisements)
 usersRouter.get("/specializations", getAllSpecializations);
-usersRouter.post("/addInfo/:user_id", authentication,addUserInfoByUserId);
+usersRouter.post("/update/:user_id", authentication,addUserInfoByUserId);
 usersRouter.post("/booking",authentication,addBokingByUserId)
 usersRouter.put("/updateAppointment/:booking_id",authentication,updateAppointmentById)
-usersRouter.get("/appointments/:user_id",authentication,getAllAppointmentsByUserId)
+usersRouter.get("/appointments/:user_id",getAllAppointmentsByUserId)
 module.exports = usersRouter;

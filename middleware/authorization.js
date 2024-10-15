@@ -13,7 +13,7 @@ const authorization = (string) => {
         }
       })
       .catch((err) => {
-        res.status(400).json({ message: "unauthorized" });
+        res.status(400).json({ success: false,message: "unauthorized" });
       });
   };
 };

@@ -1,6 +1,9 @@
+const multer = require('multer');
 const { query } = require("express");
 const pool = require("../models/db");
 const cloudinary = require('cloudinary').v2;
+const storage = multer.memoryStorage(); // Store the file in memory
+const upload = multer({ storage });
 const createNewAdvertisement = (req, res) => {
     const { doctor_id, url, image, description } = req.body;
     if (image) {
@@ -74,9 +77,27 @@ const getDoctorsBySpecializationId = (req,res)=>{
     })
 }
 
+
+// Multer setup
+
+
+// Function to update doctor information
 const addDoctorInformationById = (req, res) => {
     const { doctor_id } = req.params;
-    const { firstName, lastName, phone_number, whatsapp_number, email, city, location, image, specialization_id, years_experience, about } = req.body;
+
+    // Extract form data fields from req.body
+    const {
+        firstName,
+        lastName,
+        phone_number,
+        whatsapp_number,
+        email,
+        city,
+        location,
+        specialization_id,
+        years_experience,
+        about
+    } = req.body;
 
     const updateDoctorInformation = (imageUrl = null) => {
         const values = [
@@ -88,7 +109,7 @@ const addDoctorInformationById = (req, res) => {
             email || null,
             city || null,
             location || null,
-            imageUrl || null,
+            imageUrl || null, // Update the image URL if it exists
             specialization_id || null,
             years_experience || null,
             about || null
@@ -104,7 +125,7 @@ const addDoctorInformationById = (req, res) => {
                 email = COALESCE($6, email),
                 city = COALESCE($7, city),
                 location = COALESCE($8, location),
-                image = COALESCE($9, image), -- This will update the image if provided
+                image = COALESCE($9, image), -- Update the image if provided
                 specialization_id = COALESCE($10, specialization_id),
                 years_experience = COALESCE($11, years_experience),
                 about = COALESCE($12, about)
@@ -114,17 +135,18 @@ const addDoctorInformationById = (req, res) => {
 
         pool.query(query, values, (err, result) => {
             if (err) {
-                return res.status(500).json({ 
-                    success:false,
-                    message: 'Database error'
-                 });
+                return res.status(500).json({
+                    success: false,
+                    message: 'Database error',
+                    error: err
+                });
             }
 
             if (result.rows.length === 0) {
-                return res.status(404).json({ 
-                    success:false,
+                return res.status(404).json({
+                    success: false,
                     message: 'Doctor not found'
-                 });
+                });
             }
 
             const doctor = result.rows[0];
@@ -136,22 +158,31 @@ const addDoctorInformationById = (req, res) => {
         });
     };
 
-    if (image) {
-        cloudinary.uploader.upload(image, (error, result) => {
+    // If an image file is provided, upload it to Cloudinary
+    if (req.file) {
+        const image = req.file;
+        cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
             if (error) {
                 return res.status(500).json({
-                     success:false,
-                     message: 'Failed to upload image to Cloudinary',
-                      error 
-                    });
+                    success: false,
+                    message: 'Failed to upload image to Cloudinary',
+                    error
+                });
             }
+
             const imageUrl = result.secure_url;
-            updateDoctorInformation(imageUrl);
-        });
+            updateDoctorInformation(imageUrl); // Update with the uploaded image URL
+        }).end(image.buffer); // Pass the image buffer from multer to Cloudinary
     } else {
-        updateDoctorInformation();
+        updateDoctorInformation(); // No image, proceed with the rest of the data
     }
 };
+
+// Export the route with Multer middleware
+module.exports = (app) => {
+    app.put('/doctors/:doctor_id', upload.single('image'), addDoctorInformationById);
+};
+
 
 const addWorkingTimeByDoctorId = (req, res) => {
     const { doctor_id, start_time, end_time, review_time, day_off } = req.body;
