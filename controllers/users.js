@@ -3,7 +3,11 @@ const pool = require("../models/db");
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
 const registerOrLogin = async (req, res) => {
-  const { phone_number, role_id, OTP } = req.body;
+  
+  const phone_number=parseInt(req.body.phone_number)
+  const role_id=parseInt(req.body.role_id)
+  const OTP=parseInt(req.body.OTP)
+console.log(req.body);
 
   if (OTP !== 666) {
     return res.status(401).json({
@@ -138,63 +142,76 @@ const getAllSpecializations = (req,res)=>{
 }
 const addUserInfoByUserId = (req, res) => {
   const { user_id } = req.params;
-  const { firstName, lastName, gender, age, image } = req.body;
+  const { firstName, lastName, gender } = req.body;
+  const age = parseInt(req.body.age, 10);
+
   const updateUser = (imageUrl = null) => {
-      const values = [
-          user_id,
-          firstName || null,
-          lastName || null,
-          gender || null,
-          age || null,
-          imageUrl || null
-      ];
+    const values = [
+      user_id,
+      firstName || null,
+      lastName || null,
+      gender || null,
+      age || null,
+      imageUrl || null,
+    ];
 
-      const query = `
-          UPDATE users
-          SET
-              firstName = COALESCE($2, firstName),
-              lastName = COALESCE($3, lastName),
-              gender = COALESCE($4, gender),
-              age = COALESCE($5, age),
-              image = COALESCE($6, image) -- Only update if image is provided
-          WHERE id = $1
-          RETURNING *;
-      `;
+    const query = `
+      UPDATE users
+      SET
+        firstName = COALESCE($2, firstName),
+        lastName = COALESCE($3, lastName),
+        gender = COALESCE($4, gender),
+        age = COALESCE($5, age),
+        image = COALESCE($6, image)
+      WHERE id = $1
+      RETURNING *;
+    `;
 
-      pool.query(query, values)
-          .then((result) => {
-              return res.status(200).json({
-                  success: true,
-                  message: "Information updated successfully",
-                  data: result.rows[0]
-              });
-          })
-          .catch((error) => {
-              return res.status(500).json({
-                  success: false,
-                  message: "Server Error",
-                  error
-              });
-          });
+    pool.query(query, values)
+      .then((result) => {
+        if (result.rows.length === 0) {
+          return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        res.status(200).json({
+          success: true,
+          message: "Information updated successfully",
+          data: result.rows[0],
+        });
+      })
+      .catch((error) => {
+        res.status(500).json({
+          success: false,
+          message: "Server Error",
+          error,
+        });
+      });
   };
 
-  if (image) {
-      cloudinary.uploader.upload(image, (error, result) => {
-          if (error) {
-              return res.status(500).json({
-                success:false,
-                message: 'Failed to upload image to Cloudinary',  error 
-              });
-          }
-          const imageUrl = result.secure_url;
-          updateUser(imageUrl);
-      });
+  if (req.file) {
+    const imageBuffer = req.file.buffer;
+    cloudinary.uploader
+      .upload_stream({ resource_type: "image" }, (error, result) => {
+        if (error) {
+          return res.status(500).json({
+            success: false,
+            message: "Failed to upload image to Cloudinary",
+            error,
+          });
+        }
+
+        const imageUrl = result.secure_url;
+        updateUser(imageUrl); 
+      })
+      .end(imageBuffer);
   } else {
-      updateUser();
+    updateUser(); 
   }
 };
 const addBokingByUserId = (req,res)=>{
-const {patient_id, doctor_id, booking_time} = req.body
+const patient_id= parseInt(req.body.patient_id)
+const doctor_id=parseInt(req.body.doctor_id)
+const booking_time=req.body.booking_time
 const status_id=1
 const values = [patient_id,doctor_id, booking_time,status_id]
 const query="INSERT INTO bookings(patient_id,doctor_id, booking_time,status_id) VALUES ($1,$2,$3,$4) RETURNING *;"
@@ -214,7 +231,7 @@ pool.query(query,values).then((result)=>{
 }
 const updateAppointmentById = (req,res)=>{
   const id = req.params.booking_id
-  const {status_id} =req.body;
+  const status_id =parseInt(req.body.status_id);
   const values=[id, status_id]
   const query = "UPDATE bookings SET status_id=$2 WHERE id=$1 RETURNING *;";
   pool.query(query,values).then((result)=>{
@@ -240,7 +257,7 @@ const updateAppointmentById = (req,res)=>{
 }
 const getAllAppointmentsByUserId = (req, res) => {
   const { user_id } = req.params;  
-  const { status_id } = req.body; 
+  const status_id = parseInt(req.body.status_id); 
   if (!status_id) {
     return res.status(400).json({
       success: false,
