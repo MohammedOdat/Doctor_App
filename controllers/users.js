@@ -100,7 +100,7 @@ pool.query(query).then((result)=>{
     res.status(200).json({
       success:true,
       message:"All advertisements",
-      data: result.rows[0]
+      data: result.rows
     })
   }else(res.status(404).json({
     success:false,
