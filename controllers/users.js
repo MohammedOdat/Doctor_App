@@ -7,7 +7,6 @@ const registerOrLogin = async (req, res) => {
   const phone_number=parseInt(req.body.phone_number)
   const role_id=parseInt(req.body.role_id)
   const OTP=parseInt(req.body.OTP)
-console.log(req.body);
 
   if (OTP !== 666) {
     return res.status(401).json({
@@ -141,7 +140,7 @@ const getAllSpecializations = (req,res)=>{
       });
 }
 const addUserInfoByUserId = (req, res) => {
-  const { user_id } = req.params;
+const user_id=req.token.userId
   const { firstName, lastName, gender } = req.body;
   const age = parseInt(req.body.age, 10);
 
@@ -209,7 +208,7 @@ const addUserInfoByUserId = (req, res) => {
   }
 };
 const addBokingByUserId = (req,res)=>{
-const patient_id= parseInt(req.body.patient_id)
+const patient_id=req.token.userId
 const doctor_id=parseInt(req.body.doctor_id)
 const booking_time=req.body.booking_time
 const status_id=1
@@ -256,7 +255,7 @@ const updateAppointmentById = (req,res)=>{
 
 }
 const getAllAppointmentsByUserId = (req, res) => {
-  const { user_id } = req.params;  
+  const user_id=req.token.userId
   const status_id = parseInt(req.body.status_id); 
   if (!status_id) {
     return res.status(400).json({

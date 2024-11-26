@@ -9,7 +9,7 @@ const doctorsRouter = express.Router();
 
 doctorsRouter.post("/add_advertisement",upload.single('image'),authentication,createNewAdvertisement);
 doctorsRouter.get("/:specialization_id/:page/:size", getDoctorsBySpecializationId)
-doctorsRouter.post("/update/:doctor_id",  authentication,upload.single('image'),addDoctorInformationById)
-doctorsRouter.put("/update_times/:doctor_id",authentication,addWorkingTimeByDoctorId)
+doctorsRouter.post("/update",  authentication,upload.single('image'),addDoctorInformationById)
+doctorsRouter.post("/update_times",authentication,addWorkingTimeByDoctorId)
 
 module.exports = doctorsRouter;

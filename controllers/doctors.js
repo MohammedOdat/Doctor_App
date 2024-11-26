@@ -2,7 +2,8 @@ const { query } = require("express");
 const pool = require("../models/db");
 const cloudinary = require("cloudinary").v2;
 const createNewAdvertisement = async (req, res) => {
-  const { doctor_id, url, description } = req.body;
+  const { url, description } = req.body;
+  const doctor_id=req.token.userId
 
   if (!req.file) {
     return res.status(400).json({
@@ -97,7 +98,8 @@ const getDoctorsBySpecializationId = (req, res) => {
     });
 };
 const addDoctorInformationById = (req, res) => {
-  const { doctor_id } = req.params;
+  const doctor_id=req.token.userId
+
 
   const {
     firstName,
@@ -193,8 +195,8 @@ const addDoctorInformationById = (req, res) => {
 };
 
 const addWorkingTimeByDoctorId = (req, res) => {
-  const {  start_time, end_time, review_time, day_off } = req.body;
-const doctor_id=req.params.doctor_id
+const {  start_time, end_time, review_time, day_off } = req.body;
+const doctor_id=req.token.userId
   const values = [
     doctor_id,
     start_time || null,
@@ -225,7 +227,7 @@ const doctor_id=req.params.doctor_id
       res.status(200).json({
         success: true,
         message: "All times added successfully",
-        data: result.rows[0],
+        data: result.rows,
       });
     })
     .catch((error) => {
