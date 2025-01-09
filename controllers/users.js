@@ -39,9 +39,10 @@ const registerOrLogin = async (req, res) => {
         
         success: true,
         message: `Login successful`,
-        userId: user.id,
+        
         data: {
           token,
+          userId: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           image: user.image,
