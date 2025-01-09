@@ -36,11 +36,12 @@ const registerOrLogin = async (req, res) => {
       const token = jwt.sign(payload, secret, options);
 
       return res.status(200).json({
-        token,
+        
         success: true,
         message: `Login successful`,
         userId: user.id,
         data: {
+          token,
           firstName: user.firstName,
           lastName: user.lastName,
           image: user.image,
