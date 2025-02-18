@@ -1,4 +1,3 @@
-const { query } = require("express");
 const pool = require("../models/db");
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
