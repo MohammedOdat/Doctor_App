@@ -8,7 +8,7 @@ require("dotenv").config()
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
-
+//cloudinary
 const cloudinary = require('cloudinary').v2;
 require('dotenv').config(); 
 cloudinary.config({
